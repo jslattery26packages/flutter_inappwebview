@@ -15,57 +15,51 @@ struct ToolbarIdentifiers {
     static let menuButton = NSToolbarItem.Identifier(rawValue: "MenuButton")
 }
 
-public class InAppBrowserWindow : NSWindow, NSWindowDelegate, NSToolbarDelegate, NSSearchFieldDelegate {
+public class InAppBrowserWindow: NSWindow, NSWindowDelegate, NSToolbarDelegate, NSSearchFieldDelegate {
     var searchItem: NSToolbarItem?
     var backItem: NSToolbarItem?
     var forwardItem: NSToolbarItem?
     var reloadItem: NSToolbarItem?
     var menuItem: NSToolbarItem?
     var actionItems: [NSToolbarItem] = []
-    
+
     var reloadButton: NSButton? {
-        get {
-            return reloadItem?.view as? NSButton
-        }
+        return reloadItem?.view as? NSButton
     }
+
     var backButton: NSButton? {
-        get {
-            return backItem?.view as? NSButton
-        }
+        return backItem?.view as? NSButton
     }
+
     var forwardButton: NSButton? {
-        get {
-            return forwardItem?.view as? NSButton
-        }
+        return forwardItem?.view as? NSButton
     }
+
     var searchBar: NSSearchField? {
-        get {
-            if #available(macOS 11.0, *), let searchItem = searchItem as? NSSearchToolbarItem {
-                return searchItem.searchField
-            } else {
-                return searchItem?.view as? NSSearchField
-            }
+        if #available(macOS 11.0, *), let searchItem = searchItem as? NSSearchToolbarItem {
+            return searchItem.searchField
+        } else {
+            return searchItem?.view as? NSSearchField
         }
     }
+
     var menuButton: NSPopUpButton? {
-        get {
-            return menuItem?.view as? NSPopUpButton
-        }
+        return menuItem?.view as? NSPopUpButton
     }
-    
+
     var browserSettings: InAppBrowserSettings?
     var menuItems: [InAppBrowserMenuItem] = []
-    
+
     public func prepare() {
         title = ""
         collectionBehavior = .fullScreenPrimary
         delegate = self
-        
+
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(onMainWindowClose(_:)),
                                                name: NSWindow.willCloseNotification,
                                                object: NSApplication.shared.mainWindow)
-        
+
         if #available(macOS 10.13, *) {
             let windowToolbar = NSToolbar()
             windowToolbar.delegate = self
@@ -82,52 +76,52 @@ public class InAppBrowserWindow : NSWindow, NSWindowDelegate, NSToolbarDelegate,
             }
             searchItem?.label = ""
             windowToolbar.displayMode = .default
-            
+
             backItem = NSToolbarItem(itemIdentifier: ToolbarIdentifiers.backButton)
             backItem?.label = ""
             if let webViewController = contentViewController as? InAppBrowserWebViewController {
                 if #available(macOS 11.0, *) {
                     backItem?.view = NSButton(image: NSImage(systemSymbolName: "chevron.left",
-                                                                  accessibilityDescription: "Go Back")!,
-                                                   target: webViewController,
-                                                   action: #selector(InAppBrowserWebViewController.goBack))
+                                                             accessibilityDescription: "Go Back")!,
+                                              target: webViewController,
+                                              action: #selector(InAppBrowserWebViewController.goBack))
                 } else {
                     backItem?.view = NSButton(title: "\u{2039}",
-                                                target: webViewController,
-                                                action: #selector(InAppBrowserWebViewController.goBack))
+                                              target: webViewController,
+                                              action: #selector(InAppBrowserWebViewController.goBack))
                 }
             }
-            
+
             forwardItem = NSToolbarItem(itemIdentifier: ToolbarIdentifiers.forwardButton)
             forwardItem?.label = ""
             if let webViewController = contentViewController as? InAppBrowserWebViewController {
                 if #available(macOS 11.0, *) {
                     forwardItem?.view = NSButton(image: NSImage(systemSymbolName: "chevron.right",
-                                                                  accessibilityDescription: "Go Forward")!,
-                                                   target: webViewController,
-                                                   action: #selector(InAppBrowserWebViewController.goForward))
+                                                                accessibilityDescription: "Go Forward")!,
+                                                 target: webViewController,
+                                                 action: #selector(InAppBrowserWebViewController.goForward))
                 } else {
                     forwardItem?.view = NSButton(title: "\u{203A}",
-                                                   target: webViewController,
-                                                   action: #selector(InAppBrowserWebViewController.goForward))
+                                                 target: webViewController,
+                                                 action: #selector(InAppBrowserWebViewController.goForward))
                 }
             }
-            
+
             reloadItem = NSToolbarItem(itemIdentifier: ToolbarIdentifiers.reloadButton)
             reloadItem?.label = ""
             if let webViewController = contentViewController as? InAppBrowserWebViewController {
                 if #available(macOS 11.0, *) {
                     reloadItem?.view = NSButton(image: NSImage(systemSymbolName: "arrow.counterclockwise",
-                                                                  accessibilityDescription: "Reload")!,
-                                                   target: webViewController,
-                                                   action: #selector(InAppBrowserWebViewController.reload))
+                                                               accessibilityDescription: "Reload")!,
+                                                target: webViewController,
+                                                action: #selector(InAppBrowserWebViewController.reload))
                 } else {
                     reloadItem?.view = NSButton(title: "Reload",
-                                                   target: webViewController,
-                                                   action: #selector(InAppBrowserWebViewController.reload))
+                                                target: webViewController,
+                                                action: #selector(InAppBrowserWebViewController.reload))
                 }
             }
-            
+
             if #available(macOS 10.15, *), !menuItems.isEmpty {
                 menuItem = NSMenuToolbarItem(itemIdentifier: ToolbarIdentifiers.menuButton)
                 if let menuItem = menuItem as? NSMenuToolbarItem {
@@ -141,11 +135,11 @@ public class InAppBrowserWindow : NSWindow, NSWindowDelegate, NSToolbarDelegate,
                         menuItem.title = "Options"
                     }
                     let menu = NSMenu()
-                    menuItems = menuItems.sorted(by: {$0.order ?? 0 < $1.order ?? 0})
+                    menuItems = menuItems.sorted(by: { $0.order ?? 0 < $1.order ?? 0 })
                     for item in menuItems {
                         if !item.showAsAction {
                             let nsItem = NSMenuItem(title: item.title, action: #selector(InAppBrowserWebViewController.onMenuItemClicked), keyEquivalent: "")
-                            nsItem.identifier = NSUserInterfaceItemIdentifier.init(String(item.id))
+                            nsItem.identifier = NSUserInterfaceItemIdentifier(String(item.id))
                             nsItem.image = item.icon
                             menu.addItem(nsItem)
                         } else {
@@ -153,9 +147,9 @@ public class InAppBrowserWindow : NSWindow, NSWindowDelegate, NSToolbarDelegate,
                             actionItem.label = ""
                             if let webViewController = contentViewController as? InAppBrowserWebViewController {
                                 let actionButton = NSButton(title: item.title,
-                                                           target: webViewController,
-                                                           action: #selector(InAppBrowserWebViewController.onMenuItemClicked))
-                                actionButton.identifier = NSUserInterfaceItemIdentifier.init(String(item.id))
+                                                            target: webViewController,
+                                                            action: #selector(InAppBrowserWebViewController.onMenuItemClicked))
+                                actionButton.identifier = NSUserInterfaceItemIdentifier(String(item.id))
                                 actionButton.image = item.icon
                                 actionItem.view = actionButton
                             }
@@ -165,17 +159,16 @@ public class InAppBrowserWindow : NSWindow, NSWindowDelegate, NSToolbarDelegate,
                     menuItem.menu = menu
                 }
             }
-            
-            
+
             if #available(macOS 10.14, *) {
                 windowToolbar.centeredItemIdentifier = ToolbarIdentifiers.searchBar
             }
             toolbar = windowToolbar
         }
-        
+
         forwardButton?.isEnabled = false
         backButton?.isEnabled = false
-        
+
         if let browserSettings = browserSettings {
             if let toolbarTopFixedTitle = browserSettings.toolbarTopFixedTitle {
                 title = toolbarTopFixedTitle
@@ -192,8 +185,7 @@ public class InAppBrowserWindow : NSWindow, NSWindowDelegate, NSToolbarDelegate,
                 if let bgColor = browserSettings.toolbarTopBackgroundColor, !bgColor.isEmpty {
                     backgroundColor = NSColor(hexString: bgColor)
                 }
-            }
-            else {
+            } else {
                 toolbar?.isVisible = false
             }
             if #available(macOS 11.0, *), let windowTitlebarSeparatorStyle = browserSettings.windowTitlebarSeparatorStyle {
@@ -211,33 +203,33 @@ public class InAppBrowserWindow : NSWindow, NSWindowDelegate, NSToolbarDelegate,
             forwardItem?.view?.isHidden = browserSettings.hideDefaultMenuItems
         }
     }
-    
+
     public func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        return [[ ToolbarIdentifiers.menuButton,
+        return [[ToolbarIdentifiers.menuButton,
                  ToolbarIdentifiers.searchBar,
                  ToolbarIdentifiers.backButton,
                  ToolbarIdentifiers.forwardButton,
                  ToolbarIdentifiers.reloadButton,
-                 .flexibleSpace ], actionItems.compactMap({ item in
-                     return item.itemIdentifier
-                 })].flatMap { $0 }
+                 .flexibleSpace], actionItems.compactMap({ item in
+                item.itemIdentifier
+            })].flatMap { $0 }
     }
-    
+
     public func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         return [[.flexibleSpace,
-                ToolbarIdentifiers.searchBar,
-                .flexibleSpace,
-                ToolbarIdentifiers.reloadButton,
-                ToolbarIdentifiers.backButton,
-                ToolbarIdentifiers.forwardButton],
+                 ToolbarIdentifiers.searchBar,
+                 .flexibleSpace,
+                 ToolbarIdentifiers.reloadButton,
+                 ToolbarIdentifiers.backButton,
+                 ToolbarIdentifiers.forwardButton],
                 actionItems.compactMap({ item in
-                    return item.itemIdentifier
+                    item.itemIdentifier
                 }),
                 [ToolbarIdentifiers.menuButton]].flatMap { $0 }
     }
-    
+
     public func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier, willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
-        switch(itemIdentifier) {
+        switch itemIdentifier {
         case ToolbarIdentifiers.searchBar:
             return searchItem
         case ToolbarIdentifiers.backButton:
@@ -250,41 +242,41 @@ public class InAppBrowserWindow : NSWindow, NSWindowDelegate, NSToolbarDelegate,
             return menuItem
         default:
             let actionItem = actionItems.first { item in
-                return item.itemIdentifier == itemIdentifier
+                item.itemIdentifier == itemIdentifier
             }
             return actionItem
         }
     }
-    
+
     public func control(_ control: NSControl, textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
-        if (commandSelector == #selector(NSResponder.insertNewline(_:))) {
+        if commandSelector == #selector(NSResponder.insertNewline(_:)) {
             // ENTER key
-            var searchField: NSSearchField? = nil
+            var searchField: NSSearchField?
             if #available(macOS 11.0, *), let searchBar = searchItem as? NSSearchToolbarItem {
                 searchField = searchBar.searchField
             } else if let searchBar = searchItem {
                 searchField = searchBar.view as? NSSearchField
             }
-            
+
             guard let searchField,
                   let urlEncoded = searchField.stringValue.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
                   let url = URL(string: urlEncoded) else {
                 return false
             }
-            
+
             let request = URLRequest(url: url)
             (contentViewController as? InAppBrowserWebViewController)?.webView?.load(request)
-            
+
             return true
         }
 
         return false
     }
-    
+
     public func hide() {
         orderOut(self)
     }
-    
+
     public func show() {
         let mainWindow = parent ?? NSApplication.shared.mainWindow
         if #available(macOS 10.12, *),
@@ -296,14 +288,14 @@ public class InAppBrowserWindow : NSWindow, NSWindowDelegate, NSToolbarDelegate,
         }
         makeKeyAndOrderFront(self)
         NSApplication.shared.activate(ignoringOtherApps: true)
+        
     }
-    
+
     public func setSettings(newSettings: InAppBrowserSettings, newSettingsMap: [String: Any]) {
         if newSettingsMap["hidden"] != nil, browserSettings?.hidden != newSettings.hidden {
             if newSettings.hidden {
                 hide()
-            }
-            else {
+            } else {
                 show()
             }
         }
@@ -311,7 +303,7 @@ public class InAppBrowserWindow : NSWindow, NSWindowDelegate, NSToolbarDelegate,
         if newSettingsMap["hideUrlBar"] != nil, browserSettings?.hideUrlBar != newSettings.hideUrlBar {
             searchBar?.isHidden = newSettings.hideUrlBar
         }
-        
+
         if newSettingsMap["hideToolbarTop"] != nil, browserSettings?.hideToolbarTop != newSettings.hideToolbarTop {
             toolbar?.isVisible = !newSettings.hideToolbarTop
         }
@@ -343,16 +335,14 @@ public class InAppBrowserWindow : NSWindow, NSWindowDelegate, NSToolbarDelegate,
         }
         browserSettings = newSettings
     }
-    
+
     public func windowWillClose(_ notification: Notification) {
         dispose()
     }
-    
+
     @objc func onMainWindowClose(_ notification: Notification) {
-        close()
     }
-    
-    
+
     public func dispose() {
         delegate = nil
         if let webViewController = contentViewController as? InAppBrowserWebViewController {
@@ -375,7 +365,7 @@ public class InAppBrowserWindow : NSWindow, NSWindowDelegate, NSToolbarDelegate,
         reloadItem?.view = nil
         reloadItem = nil
     }
-    
+
     deinit {
         debugPrint("InAppBrowserWindow - dealloc")
         dispose()

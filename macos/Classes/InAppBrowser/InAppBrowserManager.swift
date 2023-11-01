@@ -5,11 +5,11 @@
 //  Created by Lorenzo Pichilli on 18/12/2019.
 //
 
-import FlutterMacOS
 import AppKit
-import WebKit
-import Foundation
 import AVFoundation
+import FlutterMacOS
+import Foundation
+import WebKit
 
 public class InAppBrowserManager: ChannelDelegate {
     static let METHOD_CHANNEL_NAME = "com.pichillilorenzo/flutter_inappbrowser"
@@ -17,33 +17,33 @@ public class InAppBrowserManager: ChannelDelegate {
     static let WEBVIEW_STORYBOARD_CONTROLLER_ID = "viewController"
     static let NAV_STORYBOARD_CONTROLLER_ID = "navController"
     var plugin: InAppWebViewFlutterPlugin?
-    
+
     init(plugin: InAppWebViewFlutterPlugin) {
         super.init(channel: FlutterMethodChannel(name: InAppBrowserManager.METHOD_CHANNEL_NAME, binaryMessenger: plugin.registrar!.messenger))
         self.plugin = plugin
     }
-    
-    public override func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+
+    override public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         let arguments = call.arguments as? NSDictionary
 
         switch call.method {
-            case "open":
-                open(arguments: arguments!)
-                result(true)
-                break
-            case "openWithSystemBrowser":
-                let url = arguments!["url"] as! String
-                openWithSystemBrowser(url: url, result: result)
-                break
-            default:
-                result(FlutterMethodNotImplemented)
-                break
+        case "open":
+            open(arguments: arguments!)
+            result(true)
+            break
+        case "openWithSystemBrowser":
+            let url = arguments!["url"] as! String
+            openWithSystemBrowser(url: url, result: result)
+            break
+        default:
+            result(FlutterMethodNotImplemented)
+            break
         }
     }
-    
+
     public func open(arguments: NSDictionary) {
         let id = arguments["id"] as! String
-        let urlRequest = arguments["urlRequest"] as? [String:Any?]
+        let urlRequest = arguments["urlRequest"] as? [String: Any?]
         let assetFilePath = arguments["assetFilePath"] as? String
         let data = arguments["data"] as? String
         let mimeType = arguments["mimeType"] as? String
@@ -53,20 +53,20 @@ public class InAppBrowserManager: ChannelDelegate {
         let windowId = arguments["windowId"] as? Int64
         let initialUserScripts = arguments["initialUserScripts"] as? [[String: Any]]
         let menuItems = arguments["menuItems"] as! [[String: Any?]]
-        
+
         let browserSettings = InAppBrowserSettings()
-        let _ = browserSettings.parse(settings: settings)
-        
+        _ = browserSettings.parse(settings: settings)
+
         let webViewSettings = InAppWebViewSettings()
-        let _ = webViewSettings.parse(settings: settings)
-        
+        _ = webViewSettings.parse(settings: settings)
+
         let webViewController = InAppBrowserWebViewController()
         webViewController.plugin = plugin
         webViewController.browserSettings = browserSettings
         webViewController.webViewSettings = webViewSettings
-        
+
         webViewController.id = id
-        webViewController.initialUrlRequest = urlRequest != nil ? URLRequest.init(fromPluginMap: urlRequest!) : nil
+        webViewController.initialUrlRequest = urlRequest != nil ? URLRequest(fromPluginMap: urlRequest!) : nil
         webViewController.initialFile = assetFilePath
         webViewController.initialData = data
         webViewController.initialMimeType = mimeType
@@ -75,7 +75,7 @@ public class InAppBrowserManager: ChannelDelegate {
         webViewController.windowId = windowId
         webViewController.initialUserScripts = initialUserScripts ?? []
         webViewController.isHidden = browserSettings.hidden
-        
+
         let window = InAppBrowserWindow(contentViewController: webViewController)
         window.browserSettings = browserSettings
         window.contentViewController = webViewController
@@ -83,20 +83,25 @@ public class InAppBrowserManager: ChannelDelegate {
             window.menuItems.append(InAppBrowserMenuItem.fromMap(map: menuItem)!)
         }
         window.prepare()
-        
-        if #available(macOS 10.12, *), browserSettings.windowType == .tabbed {
-            NSApplication.shared.mainWindow?.addTabbedWindow(window, ordered: .above)
+        if NSApplication.shared.mainWindow == nil {
+            window.setContentSize(NSSize(width: 500, height: 360))
+            window.makeKeyAndOrderFront(window)
+            NSApplication.shared.activate(ignoringOtherApps: true)
         } else {
-            NSApplication.shared.mainWindow?.addChildWindow(window, ordered: .above)
-        }
-        
-        if browserSettings.hidden {
-            window.hide()
-        } else {
-            window.makeKeyAndOrderFront(self)
+            if #available(macOS 10.12, *), browserSettings.windowType == .tabbed {
+                NSApplication.shared.mainWindow?.addTabbedWindow(window, ordered: .above)
+            } else {
+                NSApplication.shared.mainWindow?.addChildWindow(window, ordered: .above)
+            }
+            if browserSettings.hidden {
+                window.hide()
+            } else {
+                window.makeKeyAndOrderFront(self)
+            }
+            //        }
         }
     }
-    
+
     public func openWithSystemBrowser(url: String, result: @escaping FlutterResult) {
         let absoluteUrl = URL(string: url)!.absoluteURL
         if !NSWorkspace.shared.open(absoluteUrl) {
@@ -105,12 +110,12 @@ public class InAppBrowserManager: ChannelDelegate {
         }
         result(true)
     }
-    
-    public override func dispose() {
+
+    override public func dispose() {
         super.dispose()
         plugin = nil
     }
-    
+
     deinit {
         dispose()
     }

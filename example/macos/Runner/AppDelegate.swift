@@ -3,7 +3,7 @@ import FlutterMacOS
 
 private let widgetGroupId = "group.com.jackslattery.spotifyfriends"
 
-@NSApplicationMain
+@main
 class AppDelegate: FlutterAppDelegate {
     var statusBar: StatusBarController?
     var popover = NSPopover()

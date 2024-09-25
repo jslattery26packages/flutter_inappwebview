@@ -231,12 +231,11 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1400;
-				LastUpgradeCheck = 1300;
+				LastUpgradeCheck = 1510;
 				ORGANIZATIONNAME = "The Chromium Authors";
 				TargetAttributes = {
 					6143FF34290959650014A1FC = {
 						CreatedOnToolsVersion = 14.0;
-						DevelopmentTeam = PFP8UV45Y6;
 						ProvisioningStyle = Automatic;
 					};
 					97C146ED1CF9000F007C117D = {
@@ -446,7 +445,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = PFP8UV45Y6;
+				DEVELOPMENT_TEAM = Y6Z7JUQJL2;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = test/Info.plist;
@@ -484,7 +483,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = PFP8UV45Y6;
+				DEVELOPMENT_TEAM = Y6Z7JUQJL2;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = test/Info.plist;
